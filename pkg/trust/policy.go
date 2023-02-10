@@ -54,7 +54,7 @@ type genericRepoMap map[string]json.RawMessage
 
 // DefaultPolicyPath returns a path to the default policy of the system.
 func DefaultPolicyPath(sys *types.SystemContext) string {
-	systemDefaultPolicyPath := config.DefaultSignaturePolicyPath
+	systemDefaultPolicyPath := config.DefaultSignaturePath()
 	if sys != nil {
 		if sys.SignaturePolicyPath != "" {
 			return sys.SignaturePolicyPath

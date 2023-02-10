@@ -140,6 +140,27 @@ const (
 	DefaultVolumePluginTimeout = 5
 )
 
+// DefaultSignaturePath returns the default signature policy path.
+// If an error occurs return a fallback default
+func DefaultSignaturePath() string {
+	defaultSigPath := FallbackToPathRelativeToExe(defaultSignaturePolicyPath)
+	sigPath := defaultSigPath
+	if useUserConfigLocations() {
+		configHome, err := homedir.GetConfigHome()
+		if err != nil {
+			sigPath = defaultSigPath
+		} else {
+			sigPath = filepath.Join(configHome, DefaultRootlessSignaturePolicyPath)
+			if _, err := os.Stat(sigPath); err != nil {
+				if _, err := os.Stat(defaultSigPath); err == nil {
+					sigPath = defaultSigPath
+				}
+			}
+		}
+	}
+	return sigPath
+}
+
 // DefaultConfig defines the default values from containers.conf.
 func DefaultConfig() (*Config, error) {
 	defaultEngineConfig, err := defaultConfigFromMemory()
@@ -147,21 +168,7 @@ func DefaultConfig() (*Config, error) {
 		return nil, err
 	}
 
-	defaultSigPath := FallbackToPathRelativeToExe(defaultSignaturePolicyPath)
-	defaultEngineConfig.SignaturePolicyPath = defaultSigPath
-	if useUserConfigLocations() {
-		configHome, err := homedir.GetConfigHome()
-		if err != nil {
-			return nil, err
-		}
-		sigPath := filepath.Join(configHome, DefaultRootlessSignaturePolicyPath)
-		defaultEngineConfig.SignaturePolicyPath = sigPath
-		if _, err := os.Stat(sigPath); err != nil {
-			if _, err := os.Stat(defaultSigPath); err == nil {
-				defaultEngineConfig.SignaturePolicyPath = defaultSigPath
-			}
-		}
-	}
+	defaultEngineConfig.SignaturePolicyPath = DefaultSignaturePath()
 
 	cgroupNS := "host"
 	if cgroup2, _ := cgroupv2.Enabled(); cgroup2 {
