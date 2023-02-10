@@ -20,6 +20,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/containers/common/pkg/config"
 	"github.com/containers/image/v5/docker/reference"
 	"github.com/containers/image/v5/signature/internal"
 	"github.com/containers/image/v5/transports"
@@ -71,7 +72,7 @@ func defaultPolicyPathWithHomeDir(sys *types.SystemContext, homeDir string) stri
 	if sys != nil && sys.RootForImplicitAbsolutePaths != "" {
 		return filepath.Join(sys.RootForImplicitAbsolutePaths, systemDefaultPolicyPath)
 	}
-	return systemDefaultPolicyPath
+	return config.FallbackToPathRelativeToExe(systemDefaultPolicyPath)
 }
 
 // NewPolicyFromFile returns a policy configured in the specified file.

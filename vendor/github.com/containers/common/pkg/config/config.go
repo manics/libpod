@@ -22,6 +22,42 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Get path to the running executable.
+func GetExePath() string {
+	exePath, err := os.Executable()
+	if err == nil {
+		return exePath
+	}
+	exeRealPath, err := filepath.EvalSymlinks(exePath)
+	if err == nil {
+		return exeRealPath
+	}
+	panic(err)
+}
+
+const conda = true;
+// For Conda environments we transform default configuration paths like so:
+// (This assumes the executable always resides at PREFIX/bin/executable!)
+//   /etc/path -> PREFIX/bin/../etc/path -> PREFIX/etc/path
+//   /usr/share/path -> PREFIX/bin/../share/path -> PREFIX/share/path
+func PathRelativeToExe(path string) string {
+	if !conda {
+		return path
+	}
+	relativePath := strings.TrimPrefix(path, "/usr")
+	return filepath.Join(filepath.Dir(filepath.Dir(GetExePath())), relativePath)
+}
+
+func FallbackToPathRelativeToExe(path string) string {
+	if !conda {
+		return path
+	}
+	if _, err := os.Stat(path); err == nil {
+		return path
+	}
+	return PathRelativeToExe(path)
+}
+
 const (
 	// _configPath is the path to the containers/containers.conf
 	// inside a given config directory.
@@ -762,8 +798,8 @@ func systemConfigs() ([]string, error) {
 		}
 		return append(configs, path), nil
 	}
-	if _, err := os.Stat(DefaultContainersConfig); err == nil {
-		configs = append(configs, DefaultContainersConfig)
+	if _, err := os.Stat(PathRelativeToExe(DefaultContainersConfig)); err == nil {
+		configs = append(configs, PathRelativeToExe(DefaultContainersConfig))
 	}
 	if _, err := os.Stat(OverrideContainersConfig); err == nil {
 		configs = append(configs, OverrideContainersConfig)
@@ -1342,7 +1378,7 @@ func (c *Config) FindHelperBinary(name string, searchPATH bool) (string, error) 
 	if len(c.Engine.HelperBinariesDir) == 0 {
 		return "", fmt.Errorf("could not find %q because there are no helper binary directories configured.  %s", name, configHint)
 	}
-	return "", fmt.Errorf("could not find %q in one of %v.  %s", name, c.Engine.HelperBinariesDir, configHint)
+	return "", fmt.Errorf("could not find %q in one of %v.  %s", name, dirList, configHint)
 }
 
 // ImageCopyTmpDir default directory to store temporary image files during copy

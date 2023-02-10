@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/BurntSushi/toml"
+	"github.com/containers/common/pkg/config"
 	"github.com/containers/image/v5/docker/reference"
 	"github.com/containers/image/v5/types"
 	"github.com/containers/storage/pkg/homedir"
@@ -577,7 +578,7 @@ func newConfigWrapperWithHomeDir(ctx *types.SystemContext, homeDir string) confi
 	} else if ctx != nil && ctx.RootForImplicitAbsolutePaths != "" {
 		wrapper.configPath = filepath.Join(ctx.RootForImplicitAbsolutePaths, systemRegistriesConfPath)
 	} else {
-		wrapper.configPath = systemRegistriesConfPath
+		wrapper.configPath = config.FallbackToPathRelativeToExe(systemRegistriesConfPath)
 	}
 
 	// potentially use both system and per-user dirs if not using per-user config file
@@ -588,7 +589,7 @@ func newConfigWrapperWithHomeDir(ctx *types.SystemContext, homeDir string) confi
 		wrapper.configDirPath = filepath.Join(ctx.RootForImplicitAbsolutePaths, systemRegistriesConfDirPath)
 		wrapper.userConfigDirPath = userRegistriesDirPath
 	} else {
-		wrapper.configDirPath = systemRegistriesConfDirPath
+		wrapper.configDirPath = config.FallbackToPathRelativeToExe(systemRegistriesConfDirPath)
 		wrapper.userConfigDirPath = userRegistriesDirPath
 	}
 

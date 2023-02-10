@@ -16,7 +16,8 @@ const (
 
 	// DefaultSignaturePolicyPath is the default value for the
 	// policy.json file.
-	DefaultSignaturePolicyPath = "/etc/containers/policy.json"
+	// Overridden by Conda
+	defaultSignaturePolicyPath = "/etc/containers/policy.json"
 )
 
 func selinuxEnabled() bool {

@@ -147,7 +147,8 @@ func DefaultConfig() (*Config, error) {
 		return nil, err
 	}
 
-	defaultEngineConfig.SignaturePolicyPath = DefaultSignaturePolicyPath
+	defaultSigPath := FallbackToPathRelativeToExe(defaultSignaturePolicyPath)
+	defaultEngineConfig.SignaturePolicyPath = defaultSigPath
 	if useUserConfigLocations() {
 		configHome, err := homedir.GetConfigHome()
 		if err != nil {
@@ -156,8 +157,8 @@ func DefaultConfig() (*Config, error) {
 		sigPath := filepath.Join(configHome, DefaultRootlessSignaturePolicyPath)
 		defaultEngineConfig.SignaturePolicyPath = sigPath
 		if _, err := os.Stat(sigPath); err != nil {
-			if _, err := os.Stat(DefaultSignaturePolicyPath); err == nil {
-				defaultEngineConfig.SignaturePolicyPath = DefaultSignaturePolicyPath
+			if _, err := os.Stat(defaultSigPath); err == nil {
+				defaultEngineConfig.SignaturePolicyPath = defaultSigPath
 			}
 		}
 	}
