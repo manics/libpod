@@ -30,6 +30,18 @@
 #define MFD_CLOEXEC 1U
 #endif
 
+/* NB: O_PATH was introduced in Linux 2.6.39 and is not available on CentOS 6. */
+#if !defined(O_PATH)
+#define O_PATH 010000000
+#endif
+/* NB: memfd_create syscall was introduced in Linux 3.17 and got backported to CentOS 7. */
+#if !defined(__NR_memfd_create) && defined(__x86_64__)
+#define __NR_memfd_create 319
+#endif
+#if !defined(SYS_memfd_create) && defined(__NR_memfd_create)
+#define SYS_memfd_create __NR_memfd_create
+#endif
+
 #ifndef F_LINUX_SPECIFIC_BASE
 #define F_LINUX_SPECIFIC_BASE 1024
 #endif

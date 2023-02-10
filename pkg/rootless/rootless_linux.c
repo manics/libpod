@@ -59,6 +59,16 @@ cleanup_dirp (DIR **p)
     closedir (dir);
 }
 
+#ifndef HAVE_SETNS
+# include <unistd.h>
+# include <sys/syscall.h>
+/* NB: setns syscall was introduced in Linux 3.0 and is not available on CentOS 6. */
+# if !defined(__NR_setns) && defined(__x86_64__)
+#  define __NR_setns 308
+# endif
+# define setns(fd, nstype) syscall(__NR_setns, fd, nstype)
+#endif
+
 int rename_noreplace (int olddirfd, const char *oldpath, int newdirfd, const char *newpath)
 {
   int ret;
